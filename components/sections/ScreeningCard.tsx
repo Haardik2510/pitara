@@ -139,22 +139,46 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>FULL NAME *</label>
-              <input style={{ ...INP, borderColor: !payerName.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} placeholder="Enter your full name" value={payerName} onChange={e => setPayerName(e.target.value)} />
+              <input 
+                className="vintage-input" 
+                style={{ ...INP, zIndex: 10, borderColor: !payerName.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} 
+                placeholder="Enter your full name" 
+                value={payerName} 
+                onChange={e => setPayerName(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>PHONE NUMBER *</label>
-              <input style={{ ...INP, borderColor: !phone.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} type="tel" placeholder="+91 00000 00000" value={phone} onChange={e => setPhone(e.target.value)} />
+              <input 
+                className="vintage-input"
+                style={{ ...INP, zIndex: 10, borderColor: !phone.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} 
+                type="tel" 
+                placeholder="+91 00000 00000" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>EMAIL ADDRESS</label>
-              <input style={INP} type="email" placeholder="your@email.com (optional)" value={payerEmail} onChange={e => setPayerEmail(e.target.value)} />
+              <input 
+                className="vintage-input"
+                style={{ ...INP, zIndex: 10 }} 
+                type="email" 
+                placeholder="your@email.com (optional)" 
+                value={payerEmail} 
+                onChange={e => setPayerEmail(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>TICKETS</label>
               <select
+                className="vintage-input"
                 value={qty}
                 onChange={e => setQty(Number(e.target.value))}
-                style={{ ...INP, cursor: 'pointer', appearance: 'auto' }}
+                style={{ ...INP, zIndex: 10, cursor: 'pointer', appearance: 'auto' }}
               >
                 {Array.from({ length: Math.min(10, s.capacity - s.booked_count) }, (_, i) => i + 1).map(n => (
                   <option key={n} value={n}>{n} {n === 1 ? 'ticket' : 'tickets'} — ₹{Number(s.price) * n}</option>
@@ -232,23 +256,37 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 14 }}>
             <div style={{ gridColumn: '1/-1' }}>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>TRANSACTION ID / UTR NUMBER *</label>
-              <input style={{ ...INP, borderColor: !transId.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)', fontSize: 16, letterSpacing: 1 }} placeholder="Enter your UPI Transaction ID or UTR" value={transId} onChange={e => setTransId(e.target.value)} />
+              <input 
+                className="vintage-input"
+                style={{ ...INP, zIndex: 10, borderColor: !transId.trim() && error ? 'var(--orange)' : 'rgba(255,225,0,.2)', fontSize: 16, letterSpacing: 1 }} 
+                placeholder="Enter your UPI Transaction ID or UTR" 
+                value={transId} 
+                onChange={e => setTransId(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'rgba(245,238,216,.45)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>FULL NAME</label>
-              <input style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)' }} value={payerName} disabled />
+              <input className="vintage-input" style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)', zIndex: 5 }} value={payerName} disabled />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'rgba(245,238,216,.45)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>PHONE</label>
-              <input style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)' }} value={phone} disabled />
+              <input className="vintage-input" style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)', zIndex: 5 }} value={phone} disabled />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'rgba(245,238,216,.45)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>TICKETS</label>
-              <input style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)' }} value={`${qty} ticket(s) — ₹${totalAmount}`} disabled />
+              <input className="vintage-input" style={{ ...INP, opacity: 0.7, background: 'rgba(24,25,109,.3)', zIndex: 5 }} value={`${qty} ticket(s) — ₹${totalAmount}`} disabled />
             </div>
             <div>
               <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 4, display: 'block' }}>PAYMENT NOTE (OPTIONAL)</label>
-              <input style={INP} placeholder="Any additional note" value={payNote} onChange={e => setPayNote(e.target.value)} />
+              <input 
+                className="vintage-input"
+                style={{ ...INP, zIndex: 10 }} 
+                placeholder="Any additional note" 
+                value={payNote} 
+                onChange={e => setPayNote(e.target.value)} 
+                autoComplete="off"
+              />
             </div>
           </div>
 
