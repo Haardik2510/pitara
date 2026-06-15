@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#18196D"/>
+  <g fill="none" stroke="#FFE100" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M26 30c18-14 48-14 69-2" stroke-width="6"/>
+    <path d="M23 34c21-9 50-12 79-1" stroke-width="2.5"/>
+    <path d="M32 22c-4 0-8 4-8 9" stroke-width="3"/>
+    <path d="M80 25c8-9 17-7 21 1" stroke-width="3"/>
+    <path d="M25 45h76" stroke-width="3"/>
+    <path d="M27 55c12-4 27-5 43-4 13 1 24 4 34 9" stroke-width="2.8"/>
+    <path d="M28 76c20-5 45-4 76 2" stroke-width="3"/>
+  </g>
+  <g fill="#FFE100" font-family="Arial Black, Arial, sans-serif" font-weight="900">
+    <text x="20" y="73" font-size="28" transform="skewX(-8)">खुला</text>
+    <text x="33" y="103" font-size="25" letter-spacing="-1" transform="skewX(-8)">PITARA</text>
+  </g>
+  <g fill="none" stroke="#CC3A00" stroke-linecap="round">
+    <path d="M24 84c25-7 57-5 82 4" stroke-width="2.5"/>
+    <path d="M21 108h78" stroke-width="3"/>
+  </g>
+</svg>

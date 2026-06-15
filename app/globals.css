@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --navy: #18196D;
+  --navy-dark: #0e0f4a;
+  --navy-deep: #0a0b35;
+  --yellow: #FFE100;
+  --orange: #CC3A00;
+  --orange-dark: #8B2700;
+  --cream: #f5eed8;
+}
+
+* { box-sizing: border-box; }
+html { overflow-x: hidden; scroll-behavior: smooth; }
+html,
+body {
+  background-color: var(--navy-deep);
+  color: var(--yellow);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  cursor: url('/cursors/pitara-funky.svg') 5 3, auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+a,
+button,
+[role='button'],
+label,
+select,
+summary,
+.btn-primary,
+.btn-outline {
+  cursor: url('/cursors/pitara-pointer.svg') 18 18, pointer !important;
+}
+
+input,
+textarea,
+[contenteditable='true'] {
+  cursor: text !important;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed !important;
+}
+
+.scanlines {
+  position: fixed; inset: 0; z-index: 9998; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(24,25,109,.06) 3px, rgba(24,25,109,.06) 4px);
+  animation: scanShift 16s linear infinite;
+}
+@keyframes scanShift { from { background-position: 0 0; } to { background-position: 0 300px; } }
+
+@keyframes beamFlicker {
+  0%,100%{opacity:1} 91%{opacity:.9} 92%{opacity:.25} 93%{opacity:1} 97%{opacity:.55} 98%{opacity:1}
+}
+
+.text-shadow-yellow { text-shadow: 3px 3px 0 var(--orange), 6px 6px 0 rgba(204,58,0,.25); }
+.text-shadow-sm     { text-shadow: 2px 2px 0 var(--orange); }
+
+.vintage-card {
+  background: rgba(24,25,109,.4);
+  border: 1px solid rgba(255,225,0,.18);
+  position: relative; overflow: hidden;
+  transition: border-color .3s, transform .3s;
+}
+.vintage-card:hover { border-color: rgba(255,225,0,.5); }
+.vintage-card::before {
+  content: ''; position: absolute; inset: 0;
+  background: var(--orange); transform: scaleY(0); transform-origin: bottom;
+  transition: transform .3s; z-index: 0; opacity: .07;
+}
+.vintage-card:hover::before { transform: scaleY(1); }
+
+.btn-primary {
+  background: var(--yellow); color: var(--navy-deep);
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+  letter-spacing: .15em; padding: 14px 40px;
+  border: none; cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .15s; box-shadow: 4px 4px 0 var(--orange);
+  display: inline-block;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, #FFD54A 0%, #FFB300 60%, #FF8C00 100%);
+  transform: translateX(-101%); transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+.btn-primary:hover {
+  transform: scale(1.04) rotate(-.4deg);
+  box-shadow: 4px 4px 0 #FF8C00, 0 0 18px rgba(255,213,74,.35);
+}
+.btn-primary:hover::after { transform: translateX(0); }
+.btn-primary:active { transform: scale(.97); }
+.btn-primary span { position: relative; z-index: 1; }
+
+.btn-outline {
+  background: transparent; color: var(--yellow);
+  font-family: 'Bebas Neue', sans-serif; font-size: 1rem;
+  letter-spacing: .15em; padding: 12px 32px;
+  border: 2px solid var(--yellow); cursor: pointer; transition: all .2s;
+}
+.btn-outline:hover { background: var(--yellow); color: var(--navy-deep); }
+
+.vintage-input {
+  background: rgba(24,25,109,.6); border: 1px solid rgba(255,225,0,.3);
+  color: var(--cream); font-family: 'Inter', sans-serif;
+  padding: 12px 16px; width: 100%; font-size: .95rem;
+  outline: none; transition: border-color .2s;
+  position: relative; z-index: 100; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none;
+}
+.vintage-input:focus { border-color: var(--yellow); }
+.vintage-input::placeholder { color: rgba(245,238,216,.4); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--navy-deep); }
+::-webkit-scrollbar-thumb { background: var(--orange); }
+
+@keyframes wobble {
+  0%,100%{ transform: rotate(-.4deg) translateX(0) }
+  25%    { transform: rotate(.4deg)  translateX(2px) }
+  75%    { transform: rotate(.2deg)  translateX(-1px) }
+}
+.wobble { animation: wobble 4s ease-in-out infinite; }
+
+@keyframes floatY {
+  0%,100%{ transform: translateY(0) rotate(.3deg) }
+  50%    { transform: translateY(-14px) rotate(-.3deg) }
+}
+.float-anim { animation: floatY 6s ease-in-out infinite; }
+
+/* ── Find a Screening / CTA button — dual-tone yellow hover ── */
+.btn-primary-yellow::after {
+  background: linear-gradient(135deg, #FFD54A 0%, #FFB300 60%, #FF8C00 100%) !important;
+}
+.btn-primary-yellow:hover {
+  box-shadow: 4px 4px 0 #CC3A00, 0 0 24px rgba(255,213,74,.4) !important;
+}
