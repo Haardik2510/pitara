@@ -1,5 +1,6 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
+import { toPng } from 'html-to-image'
 import { useAuth } from '@/app/hooks/useAuth'
 import type { Screening } from '@/app/types'
 
@@ -15,6 +16,7 @@ type Stage = 'closed' | 'details' | 'qr' | 'form' | 'success'
 
 export default function ScreeningCard({ screening: s, index: _i }: { screening: Screening; index: number }) {
   const { user, signInWithGoogle } = useAuth()
+  const ticketRef = useRef<HTMLDivElement>(null)
 
   const [stage, setStage]           = useState<Stage>('closed')
   const [phone, setPhone]           = useState('')
@@ -29,6 +31,20 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
 
   const totalAmount = Number(s.price) * qty
   const soldOut     = s.booked_count >= s.capacity
+
+  const downloadTicket = async () => {
+    if (!ticketRef.current) return
+    try {
+      const dataUrl = await toPng(ticketRef.current, { quality: 0.95, pixelRatio: 2 })
+      const link = document.createElement('a')
+      link.download = `pitara-ticket-${bookingRef || 'booking'}.png`
+      link.href = dataUrl
+      link.click()
+    } catch (err) {
+      console.error('Failed to download ticket', err)
+      alert('Could not download ticket. Please take a screenshot instead.')
+    }
+  }
 
   const handleBook = useCallback(() => {
     if (!user) { signInWithGoogle(); return }
@@ -309,19 +325,33 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
         <div style={{ marginTop: 24, textAlign: 'center' }}>
           <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 10, color: 'var(--orange)', letterSpacing: 5, marginBottom: 20 }}>✦ BOOKING SUCCESSFUL ✦</p>
           
-          <div style={{ 
-            maxWidth: 600, margin: '0 auto', background: '#e8ddc5', color: '#0a0b35', 
-            position: 'relative', border: '1px solid #c0b080', display: 'flex', flexWrap: 'wrap', 
-            boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-          }}>
+          <div 
+            ref={ticketRef}
+            style={{ 
+              maxWidth: 600, margin: '0 auto', background: '#e8ddc5', color: '#0a0b35', 
+              position: 'relative', border: '1px solid #c0b080', display: 'flex', flexWrap: 'wrap', 
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)', overflow: 'hidden'
+            }}
+          >
+            {/* Starry Background Patterns */}
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.1, pointerEvents: 'none', backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 0L24.5 15.5H40L27.5 25L32 40L20 30.5L8 40L12.5 25L0 15.5H15.5L20 0Z' fill='%23CC3A00'/%3E%3C/svg%3E")`, backgroundSize: '80px 80px' }} />
+            
+            {/* Corner Stars */}
+            <div style={{ position:'absolute', top: 10, left: 10, opacity: 0.3 }}>
+              <svg width="24" height="24" viewBox="0 0 40 40"><path d="M20 0L24.5 15.5H40L27.5 25L32 40L20 30.5L8 40L12.5 25L0 15.5H15.5L20 0Z" fill="#FFE100" stroke="#CC3A00" strokeWidth="2"/></svg>
+            </div>
+            <div style={{ position:'absolute', bottom: 10, right: 150, opacity: 0.3 }}>
+              <svg width="32" height="32" viewBox="0 0 40 40"><path d="M20 0L24.5 15.5H40L27.5 25L32 40L20 30.5L8 40L12.5 25L0 15.5H15.5L20 0Z" fill="#FFE100" stroke="#CC3A00" strokeWidth="2"/></svg>
+            </div>
+
             {/* Perforated holes */}
-            <div style={{ position:'absolute', left:-8, top:'50%', marginTop:-8, width:16, height:16, borderRadius:'50%', background:'var(--navy-deep)', border:'1px solid #c0b080' }} />
-            <div style={{ position:'absolute', right:-8, top:'50%', marginTop:-8, width:16, height:16, borderRadius:'50%', background:'var(--navy-deep)', border:'1px solid #c0b080' }} />
+            <div style={{ position:'absolute', left:-8, top:'50%', marginTop:-8, width:16, height:16, borderRadius:'50%', background:'var(--navy-deep)', border:'1px solid #c0b080', zIndex: 2 }} />
+            <div style={{ position:'absolute', right:-8, top:'50%', marginTop:-8, width:16, height:16, borderRadius:'50%', background:'var(--navy-deep)', border:'1px solid #c0b080', zIndex: 2 }} />
 
             {/* Main Part */}
-            <div style={{ flex: 1, padding: '24px 32px', textAlign: 'left', borderRight: '2px dashed #b0a070', minWidth:300 }}>
+            <div style={{ flex: 1, padding: '24px 32px', textAlign: 'left', borderRight: '2px dashed #b0a070', minWidth:300, position:'relative', zIndex: 1 }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-                <p style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 42, margin: 0, lineHeight: 0.9, color: '#222' }}>PITARA CINEMA</p>
+                <p style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 42, margin: 0, lineHeight: 0.9, color: '#222', letterSpacing: 2 }}>KHULA PITARA</p>
                 <div style={{ textAlign:'right' }}>
                    <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, fontWeight:'bold', margin:0 }}>REF# {bookingRef}</p>
                    <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, opacity: 0.6, margin:0 }}>{new Date().toLocaleDateString()}</p>
@@ -376,7 +406,12 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
             (Kindly screenshot this ticket as it cannot be generated again)
           </p>
           
-          <button className="btn-outline" onClick={reset} style={{ fontSize: 12, marginTop: 24, padding: '10px 24px' }}>Done</button>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 24 }}>
+            <button className="btn-primary" onClick={downloadTicket} style={{ fontSize: 13, padding: '10px 28px' }}>
+              <span>Download Ticket ↓</span>
+            </button>
+            <button className="btn-outline" onClick={reset} style={{ fontSize: 12, padding: '10px 24px' }}>Done</button>
+          </div>
         </div>
       )}
     </div>
