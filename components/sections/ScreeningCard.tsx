@@ -106,7 +106,7 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
 
   /* ── Render ───────────────────────────────────────────────── */
   return (
-    <div className="vintage-card" style={{ padding: 'clamp(16px,3vw,24px)', marginBottom: 2 }}>
+    <div className="vintage-card" style={{ padding: 'clamp(16px,3vw,24px)', marginBottom: 2, minHeight: stage === 'closed' ? 'auto' : 600 }}>
       {/* header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
