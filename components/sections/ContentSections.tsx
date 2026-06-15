@@ -76,9 +76,10 @@ export function AboutSection() {
 
         <div className="about-pillars" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 2 }}>
           {ABOUT_PILLARS.map(({ icon, title, body }) => (
-            <div key={title} className="about-pillar vintage-card" style={{ padding: '24px 20px' }}>
+            <div key={title} className="about-pillar vintage-card" style={{ padding: '28px 20px', textAlign: 'center' }}>
               <div style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: 13, color: 'var(--orange)', letterSpacing: 3, marginBottom: 12 }}>{icon}</div>
               <h3 style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 'clamp(16px,2vw,20px)', color: 'var(--yellow)', letterSpacing: 2, marginBottom: 10, textTransform: 'uppercase' }}>{title}</h3>
+              <div style={{ width: 30, height: 2, background: 'var(--orange)', margin: '0 auto 12px' }} />
               <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontWeight: 700, fontSize: 12, color: 'var(--yellow)', opacity: .9, lineHeight: 1.55, textTransform: 'uppercase' }}>{body}</p>
             </div>
           ))}

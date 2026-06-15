@@ -142,7 +142,7 @@ export default function AdminPage() {
   useEffect(() => { 
     soundEffects.init()
     if (isAdmin) fetchAll() 
-  }, [isAdmin, fetchAll])
+  }, [isAdmin, fetchAll, tab])
 
   // ── Submission settings ──────────────────────────────────
   const patchSettings = async (patch: Partial<SubmissionSettings>) => {

@@ -39,7 +39,7 @@ export default function OpeningSequence({ onComplete, playProjector, playNoise }
             opacity:    lineIdx >= i ? 1 : 0,
             transform:  lineIdx >= i ? 'translateY(0)' : 'translateY(30px)',
             transition: 'opacity .7s ease, transform .7s ease',
-            textShadow: '2px 2px 0 var(--orange)',
+            textShadow: i===2 ? '0 0 15px rgba(204,58,0,0.4), 2px 2px 0 rgba(0,0,0,0.3)' : '2px 2px 0 var(--orange)',
           }}>{line}</div>
         ))}
         <div style={{ marginTop:40,height:24,width:'min(320px,80vw)',margin:'40px auto 0',
