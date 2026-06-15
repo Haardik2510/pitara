@@ -10,6 +10,8 @@ export interface Booking {
   id: string; user_id: string; screening_id: string;
   booking_reference: string; amount_paid: number;
   razorpay_order_id?: string; razorpay_payment_id?: string; razorpay_signature?: string;
+  payment_payer_name?: string; payment_payer_email?: string;
+  payment_transaction_id?: string; payment_notes?: string;
   status: 'pending'|'confirmed'|'cancelled'|'refunded';
   phone_number?: string; attended: boolean; created_at: string;
   screening?: Screening; user?: UserProfile;
@@ -23,11 +25,12 @@ export interface TicketData {
   time: string; venue: string; city: string; amount_paid: number;
   user_name: string; user_email: string; qr_code: string;
 }
-export interface RazorpayOrderResponse {
-  orderId: string; amount: number; currency: string;
-  bookingRef: string; bookingId: string; keyId: string;
-  prefill: { name: string; email: string; contact: string };
-  description: string;
+export interface ManualBookingResponse {
+  amount: number
+  bookingRef: string
+  bookingId: string
+  status: 'pending'
+  message: string
 }
 
 export interface SubmissionSettings {
@@ -59,6 +62,10 @@ export interface FilmSubmission {
   status: 'pending' | 'under_review' | 'approved' | 'rejected'
   razorpay_order_id?: string
   razorpay_payment_id?: string
+  payment_payer_name?: string
+  payment_payer_email?: string
+  payment_transaction_id?: string
+  payment_notes?: string
   fee_paid: number
   created_at: string
   updated_at: string

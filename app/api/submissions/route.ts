@@ -1,6 +1,5 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
-import crypto from 'crypto'
 import { createAdminClient, requireAdmin } from '@/app/lib/supabase-server'
 
 export async function GET(req: NextRequest) {
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (exportCsv) {
     const headers = [
       'ID', 'Title', 'Director', 'Runtime', 'Genres', 'Submitter', 'Email', 'Phone',
-      'Screening Link', 'Trailer Link', 'Status', 'Fee Paid', 'Razorpay ID', 'Submitted At',
+      'Screening Link', 'Trailer Link', 'Payer Name', 'Payer Email', 'Transaction ID', 'Payment Notes', 'Status', 'Fee Paid', 'Submitted At',
     ]
     const rows = (data || []).map((s: any) => [
       s.id,
@@ -36,9 +35,12 @@ export async function GET(req: NextRequest) {
       s.submitter_phone || '',
       s.screening_link || '',
       s.trailer_link || '',
+      s.payment_payer_name || '',
+      s.payment_payer_email || '',
+      s.payment_transaction_id || '',
+      s.payment_notes || '',
       s.status,
       `INR ${s.fee_paid}`,
-      s.razorpay_payment_id || '',
       new Date(s.created_at).toLocaleString('en-IN'),
     ])
     const csv = [headers, ...rows]
@@ -57,10 +59,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!process.env.RAZORPAY_KEY_SECRET) {
-    return NextResponse.json({ error: 'Payment secret not configured' }, { status: 500 })
-  }
-
   const db = createAdminClient()
   const body = await req.json()
   const { data: settings, error: settingsError } = await db
@@ -76,27 +74,12 @@ export async function POST(req: NextRequest) {
   }
 
   const feeRequired = Boolean(settings?.fee_required && Number(settings.fee_amount) > 0)
-  let razorpay_order_id: string | null = null
-  let razorpay_payment_id: string | null = null
   let fee_paid = 0
 
   if (feeRequired) {
-    const { razorpay_order_id: orderId, razorpay_payment_id: paymentId, razorpay_signature } = body
-    if (!orderId || !paymentId || !razorpay_signature) {
-      return NextResponse.json({ error: 'Payment verification required' }, { status: 400 })
+    if (!body.payment_transaction_id || !body.payment_payer_name) {
+      return NextResponse.json({ error: 'Payment name and transaction ID are required' }, { status: 400 })
     }
-
-    const expectedSig = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(`${orderId}|${paymentId}`)
-      .digest('hex')
-
-    if (expectedSig !== razorpay_signature) {
-      return NextResponse.json({ error: 'Payment verification failed' }, { status: 400 })
-    }
-
-    razorpay_order_id = orderId
-    razorpay_payment_id = paymentId
     fee_paid = Number(settings.fee_amount) || 0
   }
 
@@ -118,8 +101,12 @@ export async function POST(req: NextRequest) {
     submitter_email: body.submitter_email,
     submitter_phone: body.submitter_phone || null,
     status: 'pending',
-    razorpay_order_id,
-    razorpay_payment_id,
+    razorpay_order_id: null,
+    razorpay_payment_id: null,
+    payment_payer_name: body.payment_payer_name || null,
+    payment_payer_email: body.payment_payer_email || body.submitter_email || null,
+    payment_transaction_id: body.payment_transaction_id || null,
+    payment_notes: body.payment_notes || null,
     fee_paid,
   }).select().single()
 

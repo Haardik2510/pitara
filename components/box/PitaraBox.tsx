@@ -715,7 +715,7 @@ export default function PitaraBox({ onReveal, playCreak, playNoise, playApplause
         v: 0.55, duration: 1.2, ease: 'power2.out',
         onUpdate: function () { st.current.warmLight = (this.targets()[0] as any).v }
       })
-      setHint('रोशनी निकल रही है… The light escapes…')
+      setHint('रोशनी निकल रही है… The light bleeds…')
       playNoise(0.08, 80, 0.06)
 
     } else if (st.current.clicks === 3) {

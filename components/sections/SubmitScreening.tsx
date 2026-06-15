@@ -125,6 +125,7 @@ type FormData = {
   writer_name: string; cast_members: string; release_year: string; synopsis: string
   additional_notes: string; poster_url: string; gallery_urls: string[]; screening_link: string
   trailer_link: string; submitter_name: string; submitter_email: string; submitter_phone: string
+  payment_transaction_id: string; payment_payer_name: string; payment_notes: string;
 }
 
 const INIT: FormData = {
@@ -132,6 +133,7 @@ const INIT: FormData = {
   cast_members: '', release_year: '', synopsis: '', additional_notes: '',
   poster_url: '', gallery_urls: [], screening_link: '', trailer_link: '',
   submitter_name: '', submitter_email: '', submitter_phone: '',
+  payment_transaction_id: '', payment_payer_name: '', payment_notes: '',
 }
 
 export default function SubmitScreeningSection() {
@@ -160,6 +162,9 @@ export default function SubmitScreeningSection() {
     set('genres', form.genres.includes(g) ? form.genres.filter(x => x !== g) : [...form.genres, g])
   }
 
+  const feeRequired = Boolean(settings?.fee_required && Number(settings.fee_amount) > 0)
+  const totalSteps = feeRequired ? 4 : 3
+
   const validateStep = (s: number): boolean => {
     const e: Record<string, string> = {}
     if (s === 0) {
@@ -176,6 +181,10 @@ export default function SubmitScreeningSection() {
       if (!form.submitter_name.trim()) e.submitter_name = 'Your name is required'
       if (!form.submitter_email.trim()|| !form.submitter_email.includes('@')) e.submitter_email = 'Valid email required'
     }
+    if (s === 3 && feeRequired) {
+      if (!form.payment_transaction_id.trim()) e.payment_transaction_id = 'Transaction ID / UTR is required'
+      if (!form.payment_payer_name.trim())     e.payment_payer_name     = 'Payer name is required'
+    }
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -184,65 +193,30 @@ export default function SubmitScreeningSection() {
   const prev = () => setStep(s => s - 1)
 
   const handleSubmit = async () => {
-    if (!validateStep(2)) return
+    const finalStep = feeRequired ? 3 : 2
+    if (!validateStep(finalStep)) return
     setSubmitting(true); setSubmitErr('')
 
     const payload = {
       ...form,
       runtime_minutes: Number(form.runtime_minutes) || 0,
       release_year:    form.release_year ? Number(form.release_year) : null,
-      fee_paid:        0,
+      fee_paid:        feeRequired ? Number(settings.fee_amount) : 0,
+      payment_payer_name: feeRequired ? form.payment_payer_name : form.submitter_name,
+      payment_payer_email: form.submitter_email, // default
     }
 
-    if (settings?.fee_required && (settings.fee_amount || 0) > 0) {
-      // ── PAID flow ──
-      const ok = await loadRzp()
-      if (!ok) { setSubmitErr('Could not load payment gateway.'); setSubmitting(false); return }
-
-      const oRes = await fetch('/api/payments/submission-order', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionData: payload }),
-      })
-      const oData = await oRes.json()
-      if (!oRes.ok) { setSubmitErr(oData.error || 'Could not create order.'); setSubmitting(false); return }
-
-      new window.Razorpay({
-        key:         oData.keyId,
-        amount:      oData.amount,
-        currency:    oData.currency,
-        name:        'PITARA',
-        description: `Submission: ${form.title}`,
-        order_id:    oData.orderId,
-        prefill:     { name: form.submitter_name, email: form.submitter_email, contact: form.submitter_phone },
-        theme:       { color: '#FFE100' },
-        modal: {
-          ondismiss: () => { setSubmitting(false); setSubmitErr('Payment was cancelled.') },
-        },
-        handler: async (r: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-          const sRes = await fetch('/api/submissions', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...payload,
-              razorpay_order_id: r.razorpay_order_id,
-              razorpay_payment_id: r.razorpay_payment_id,
-              razorpay_signature: r.razorpay_signature,
-            }),
-          })
-          if (sRes.ok) { setSubmitted(true) }
-          else { const d = await sRes.json(); setSubmitErr(d.error || 'Submission failed.') }
-          setSubmitting(false)
-        },
-      }).open()
-      return
-    }
-
-    // ── FREE flow ──
     const sRes = await fetch('/api/submissions', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    if (sRes.ok) { setSubmitted(true) }
-    else { const d = await sRes.json(); setSubmitErr(d.error || 'Submission failed.') }
+    
+    if (sRes.ok) { 
+      setSubmitted(true) 
+    } else { 
+      const d = await sRes.json(); 
+      setSubmitErr(d.error || 'Submission failed.') 
+    }
     setSubmitting(false)
   }
 
@@ -272,7 +246,7 @@ export default function SubmitScreeningSection() {
         </h2>
         <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 'clamp(13px,1.6vw,17px)', color: 'var(--cream)', opacity: .72, lineHeight: 1.7, maxWidth: 520, marginBottom: 40 }}>
           Have a film that deserves an audience? Tell us about it.
-          {settings.fee_required && settings.fee_amount > 0 && (
+          {feeRequired && (
             <span style={{ display: 'block', marginTop: 8, fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: 'var(--orange)', letterSpacing: 2 }}>
               Submission fee: ₹{settings.fee_amount}
             </span>
@@ -297,7 +271,7 @@ export default function SubmitScreeningSection() {
                 We&apos;ve received &ldquo;{form.title}&rdquo;.
               </p>
               <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 14, color: 'var(--cream)', opacity: .65, lineHeight: 1.7, maxWidth: 400, margin: '0 auto' }}>
-                Our team will review your submission and get back to you at <strong style={{ color: 'var(--yellow)' }}>{form.submitter_email}</strong> within 7 days.
+                Your submission will be verified manually. Check your email <strong style={{ color: 'var(--yellow)' }}>{form.submitter_email}</strong> for updates.
               </p>
               <button className="btn-outline" style={{ marginTop: 32, fontSize: 13 }} onClick={() => { setSubmitted(false); setStep(0); setForm({ ...INIT }) }}>
                 Submit Another Film
@@ -305,7 +279,26 @@ export default function SubmitScreeningSection() {
             </div>
           ) : (
             <>
-              <StepIndicator step={step} total={3} />
+              {/* ── Step indicator ── */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 0, marginBottom: 40 }}>
+                {(feeRequired ? ['Info', 'Media', 'Contact', 'Payment'] : ['Info', 'Media', 'Contact']).map((l, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', flex: i < totalSteps - 1 ? 1 : 'none' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                      <div style={{
+                        width: 32, height: 32, border: `2px solid ${i < step ? 'var(--orange)' : i === step ? 'var(--yellow)' : 'rgba(255,225,0,.2)'}`,
+                        background: i < step ? 'var(--orange)' : i === step ? 'rgba(255,225,0,.1)' : 'transparent',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontFamily: "'Bebas Neue',sans-serif", fontSize: 14, color: i < step ? '#fff' : i === step ? 'var(--yellow)' : 'rgba(255,225,0,.3)',
+                        transition: 'all .3s',
+                      }}>
+                        {i < step ? '✓' : i + 1}
+                      </div>
+                      <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 8, letterSpacing: 2, color: i === step ? 'var(--yellow)' : 'rgba(255,225,0,.35)', whiteSpace: 'nowrap' }}>{l.toUpperCase()}</p>
+                    </div>
+                    {i < totalSteps - 1 && <div style={{ flex: 1, height: 1, background: i < step ? 'var(--orange)' : 'rgba(255,225,0,.15)', margin: '-16px 8px 0', transition: 'background .3s' }} />}
+                  </div>
+                ))}
+              </div>
 
               {/* ── STEP 0: Film Info ── */}
               {step === 0 && (
@@ -406,9 +399,6 @@ export default function SubmitScreeningSection() {
               {/* ── STEP 2: Contact ── */}
               {step === 2 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-                  <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 500, fontSize: 'clamp(14px,2vw,18px)', color: 'var(--cream)', opacity: .75, lineHeight: 1.6, marginBottom: 4 }}>
-                    Tell us who to contact regarding this submission.
-                  </p>
                   <Field label="Your Name" labelHi="आपका नाम" required>
                     <input style={{ ...INP, borderColor: errors.submitter_name ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} placeholder="Full name" value={form.submitter_name} onChange={e => set('submitter_name', e.target.value)} />
                     {errors.submitter_name && <p style={ERR}>{errors.submitter_name}</p>}
@@ -418,21 +408,49 @@ export default function SubmitScreeningSection() {
                     {errors.submitter_email && <p style={ERR}>{errors.submitter_email}</p>}
                   </Field>
                   <Field label="Phone Number" labelHi="फ़ोन नंबर (वैकल्पिक)">
-                    <input style={INP} type="tel" placeholder="+91 00000 00000 (optional)" value={form.submitter_phone} onChange={e => set('submitter_phone', e.target.value)} />
+                    <input style={INP} type="tel" placeholder="+91 00000 00000" value={form.submitter_phone} onChange={e => set('submitter_phone', e.target.value)} />
                   </Field>
-
-                  {/* fee notice */}
-                  {settings.fee_required && settings.fee_amount > 0 && (
-                    <div style={{ border: '1px solid rgba(255,225,0,.2)', background: 'rgba(24,25,109,.4)', padding: '16px 20px' }}>
-                      <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 4, marginBottom: 8 }}>SUBMISSION FEE</p>
-                      <p style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 32, color: 'var(--yellow)', letterSpacing: 4, textShadow: '2px 2px 0 var(--orange)' }}>₹{settings.fee_amount}</p>
-                      <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 12, color: 'var(--cream)', opacity: .6, marginTop: 6 }}>You will be taken to Razorpay checkout after clicking Submit.</p>
-                    </div>
-                  )}
-
-                  {submitErr && <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: 'var(--orange)' }}>{submitErr}</p>}
                 </div>
               )}
+
+              {/* ── STEP 3: Payment ── */}
+              {step === 3 && feeRequired && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                  <div style={{ textAlign: 'center', marginBottom: 10 }}>
+                    <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 4, marginBottom: 8 }}>AMOUNT TO PAY</p>
+                    <p style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 48, color: 'var(--yellow)', letterSpacing: 4, textShadow: '2px 2px 0 var(--orange)', lineHeight: 1 }}>₹{settings.fee_amount}</p>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+                    <div style={{ background: '#fff', padding: 12, border: '4px solid var(--yellow)' }}>
+                      <img src="/payment-qr.png" alt="Payment QR" style={{ width: 200, height: 200 }} />
+                    </div>
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 600, fontSize: 16, color: 'var(--cream)' }}>Rohit Kumar</p>
+                      <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 11, color: 'var(--yellow)', letterSpacing: 2 }}>UPI ID: 8745851505@ptsbi</p>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(24,25,109,.4)', padding: '20px', border: '1px solid rgba(255,225,0,.1)' }}>
+                    <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 16 }}>ENTER TRANSACTION DETAILS</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                      <Field label="Transaction ID / UTR Number" required>
+                        <input style={{ ...INP, borderColor: errors.payment_transaction_id ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} placeholder="Enter the 12-digit UPI Transaction ID" value={form.payment_transaction_id} onChange={e => set('payment_transaction_id', e.target.value)} />
+                        {errors.payment_transaction_id && <p style={ERR}>{errors.payment_transaction_id}</p>}
+                      </Field>
+                      <Field label="Payer Name (as per UPI)" required>
+                        <input style={{ ...INP, borderColor: errors.payment_payer_name ? 'var(--orange)' : 'rgba(255,225,0,.2)' }} placeholder="Name on the bank account" value={form.payment_payer_name} onChange={e => set('payment_payer_name', e.target.value)} />
+                        {errors.payment_payer_name && <p style={ERR}>{errors.payment_payer_name}</p>}
+                      </Field>
+                      <Field label="Payment Notes (Optional)">
+                        <input style={INP} placeholder="Any message for verification" value={form.payment_notes} onChange={e => set('payment_notes', e.target.value)} />
+                      </Field>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {submitErr && <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: 'var(--orange)', marginTop: 20 }}>{submitErr}</p>}
 
               {/* ── NAV BUTTONS ── */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 36, flexWrap: 'wrap', gap: 12 }}>
@@ -440,13 +458,11 @@ export default function SubmitScreeningSection() {
                   <button className="btn-outline" style={{ fontSize: 13 }} onClick={prev} disabled={submitting}>← Back</button>
                 ) : <div />}
 
-                {step < 2 ? (
+                {step < totalSteps - 1 ? (
                   <button className="btn-primary" onClick={next}><span>Continue →</span></button>
                 ) : (
                   <button className="btn-primary" onClick={handleSubmit} disabled={submitting}>
-                    <span>
-                      {submitting ? 'Submitting…' : settings.fee_required && settings.fee_amount > 0 ? `Pay ₹${settings.fee_amount} & Submit →` : 'Submit Film →'}
-                    </span>
+                    <span>{submitting ? 'Submitting…' : 'Submit Film →'}</span>
                   </button>
                 )}
               </div>

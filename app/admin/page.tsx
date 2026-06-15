@@ -218,17 +218,19 @@ export default function AdminPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // ── Booking attendance ───────────────────────────────────
-  const markAttend = async (id: string, attended: boolean) => {
+  // ── Booking status ───────────────────────────────────
+  const patchBooking = async (id: string, patch: Partial<Booking>) => {
     try {
       const res = await fetch(`/api/bookings/${id}`, {
         method:'PATCH', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({ attended }),
+        body:JSON.stringify(patch),
       })
-      if (res.ok) { showToast(attended ? 'Marked attended' : 'Marked absent', 'ok'); await fetchAll() }
+      if (res.ok) { showToast('Booking updated', 'ok'); await fetchAll() }
       else showToast('Update failed', 'err')
     } catch { showToast('Network error', 'err') }
   }
+
+  const markAttend = (id: string, attended: boolean) => patchBooking(id, { attended })
 
   // ── Submission actions ───────────────────────────────────
   const patchSub = async (id: string, patch: Partial<FilmSubmission>) => {
@@ -307,7 +309,7 @@ export default function AdminPage() {
 
   const confirmed  = bookings.filter(b => b.status === 'confirmed')
   const revenue    = confirmed.reduce((s,b) => s + Number(b.amount_paid), 0)
-  const subRevenue = submissions.filter(s => s.razorpay_payment_id).reduce((t,s) => t + Number(s.fee_paid), 0)
+  const subRevenue = submissions.reduce((t,s) => t + Number(s.fee_paid), 0)
 
   return (
     <div style={{minHeight:'100vh', background:'var(--navy-deep)', color:'var(--yellow)'}}>
@@ -425,7 +427,7 @@ export default function AdminPage() {
                 <table style={{width:'100%',borderCollapse:'collapse',fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>
                   <thead>
                     <tr style={{borderBottom:'1px solid rgba(255,225,0,.2)'}}>
-                      {['REF','NAME','EMAIL','PHONE','SCREENING','AMOUNT','STATUS','ATTENDED','DATE'].map(h => (
+                      {['REF','NAME','CONTACT','TRANSACTION ID','SCREENING','AMOUNT','STATUS','NOTES','ATTENDED','DATE'].map(h => (
                         <th key={h} style={{padding:'8px 10px',textAlign:'left',color:'var(--orange)',letterSpacing:2,whiteSpace:'nowrap'}}>{h}</th>
                       ))}
                     </tr>
@@ -434,14 +436,27 @@ export default function AdminPage() {
                     {bookings.map(b => (
                       <tr key={b.id} style={{borderBottom:'1px solid rgba(255,225,0,.06)'}}>
                         <td style={{padding:'7px 10px',color:'var(--yellow)',whiteSpace:'nowrap'}}>{b.booking_reference}</td>
-                        <td style={{padding:'7px 10px',color:'var(--cream)'}}>{(b.user as any)?.name||'—'}</td>
-                        <td style={{padding:'7px 10px',color:'rgba(245,238,216,.6)',fontSize:10}}>{(b.user as any)?.email||'—'}</td>
+                        <td style={{padding:'7px 10px',color:'var(--cream)'}}>
+                          <div>{(b.payment_payer_name || (b.user as any)?.name || '—')}</div>
+                          <div style={{fontSize:9,opacity:0.5}}>{(b.payment_payer_email || (b.user as any)?.email || '')}</div>
+                        </td>
                         <td style={{padding:'7px 10px',color:'rgba(245,238,216,.7)'}}>{b.phone_number||'—'}</td>
+                        <td style={{padding:'7px 10px',color:'var(--yellow)',fontSize:10,letterSpacing:1}}>{b.payment_transaction_id || b.razorpay_payment_id || '—'}</td>
                         <td style={{padding:'7px 10px',color:'var(--cream)',whiteSpace:'nowrap'}}>{(b.screening as any)?.title||'—'}</td>
                         <td style={{padding:'7px 10px',color:'var(--yellow)'}}>₹{b.amount_paid}</td>
                         <td style={{padding:'7px 10px'}}>
-                          <span style={{color:STATUS_COLS[b.status]||'rgba(255,225,0,.5)',letterSpacing:2}}>{b.status.toUpperCase()}</span>
+                          <select
+                            value={b.status}
+                            onChange={e => patchBooking(b.id, { status: e.target.value as any })}
+                            style={{background:'rgba(24,25,109,.6)',border:'1px solid rgba(255,225,0,.2)',color:STATUS_COLS[b.status]||'var(--cream)',fontFamily:"'IBM Plex Mono',monospace",fontSize:9,padding:'4px 6px',cursor:'pointer',letterSpacing:2}}
+                          >
+                            <option value="pending">PENDING</option>
+                            <option value="confirmed">CONFIRMED</option>
+                            <option value="cancelled">CANCELLED</option>
+                            <option value="failed">FAILED</option>
+                          </select>
                         </td>
+                        <td style={{padding:'7px 10px',color:'rgba(245,238,216,.6)',fontSize:10}}>{b.payment_notes || '—'}</td>
                         <td style={{padding:'7px 10px'}}>
                           <button onClick={() => markAttend(b.id, !b.attended)} style={{
                             background:b.attended?'rgba(0,200,100,.2)':'transparent',
@@ -535,13 +550,23 @@ export default function AdminPage() {
                             </a>
                           )}
                         </div>
-                        <div style={{display:'grid',gap:4,marginTop:8,maxWidth:620}}>
-                          <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.45)',letterSpacing:1,wordBreak:'break-all'}}>
-                            Film Link: {s.screening_link || 'Not submitted'}
-                          </p>
-                          <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.45)',letterSpacing:1,wordBreak:'break-all'}}>
-                            Trailer Link: {s.trailer_link || 'Not submitted'}
-                          </p>
+                        <div style={{display:'grid',gap:6,marginTop:12,padding:'10px 14px',background:'rgba(255,225,0,.04)',border:'1px solid rgba(255,225,0,.1)'}}>
+                          <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:'var(--orange)',letterSpacing:2,marginBottom:4}}>PAYMENT VERIFICATION</p>
+                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                            <div>
+                              <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>PAYER NAME</p>
+                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--cream)'}}>{s.payment_payer_name || '—'}</p>
+                            </div>
+                            <div>
+                              <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>TRANSACTION ID / UTR</p>
+                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--yellow)',letterSpacing:1}}>{s.payment_transaction_id || s.razorpay_payment_id || '—'}</p>
+                            </div>
+                          </div>
+                          {s.payment_notes && (
+                            <p style={{fontFamily:"'Inter',sans-serif",fontSize:10,color:'rgba(245,238,216,.6)',marginTop:4,fontStyle:'italic'}}>
+                              Note: {s.payment_notes}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div style={{display:'flex',flexDirection:'column',gap:8,alignItems:'flex-end',flexShrink:0}}>

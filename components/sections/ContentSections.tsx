@@ -108,8 +108,8 @@ export function AboutSection() {
 const TEAM_MEMBERS = [
   { name: 'Kritika', image: '/team/kritika.jpg' },
   { name: 'Rohit', image: '/team/rohit.jpg' },
-  { name: 'Ashish' },
-  { name: 'Ayaan' },
+  { name: 'Ashish', image: '/team/ashish.jpg' },
+  { name: 'Ayaan', image: '/team/ayaan.jpg' },
 ]
 
 export function TeamSection() {

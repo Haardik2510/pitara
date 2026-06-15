@@ -47,6 +47,10 @@ CREATE TABLE IF NOT EXISTS bookings (
   razorpay_order_id    TEXT,
   razorpay_payment_id  TEXT,
   razorpay_signature   TEXT,
+  payment_payer_name       TEXT,
+  payment_payer_email      TEXT,
+  payment_transaction_id   TEXT,
+  payment_notes            TEXT,
   status               TEXT        NOT NULL DEFAULT 'pending'
                          CHECK (status IN ('pending','confirmed','cancelled','refunded')),
   phone_number         TEXT,
@@ -61,6 +65,12 @@ CREATE INDEX IF NOT EXISTS idx_bookings_user        ON bookings(user_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_screening   ON bookings(screening_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_reference   ON bookings(booking_reference);
 CREATE INDEX IF NOT EXISTS idx_bookings_rzp_order   ON bookings(razorpay_order_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_transaction ON bookings(payment_transaction_id);
+
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_payer_name TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_payer_email TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_transaction_id TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_notes TEXT;
 
 -- 5. ROW LEVEL SECURITY
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -102,7 +112,11 @@ CREATE OR REPLACE FUNCTION reserve_booking(
   p_user_id TEXT,
   p_booking_reference TEXT,
   p_amount_paid NUMERIC,
-  p_phone_number TEXT DEFAULT NULL
+  p_phone_number TEXT DEFAULT NULL,
+  p_payment_payer_name TEXT DEFAULT NULL,
+  p_payment_payer_email TEXT DEFAULT NULL,
+  p_payment_transaction_id TEXT DEFAULT NULL,
+  p_payment_notes TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -113,6 +127,10 @@ RETURNS TABLE (
   razorpay_order_id TEXT,
   razorpay_payment_id TEXT,
   razorpay_signature TEXT,
+  payment_payer_name TEXT,
+  payment_payer_email TEXT,
+  payment_transaction_id TEXT,
+  payment_notes TEXT,
   status TEXT,
   phone_number TEXT,
   attended BOOLEAN,
@@ -141,9 +159,11 @@ BEGIN
   END IF;
 
   INSERT INTO bookings (
-    user_id, screening_id, booking_reference, amount_paid, status, phone_number
+    user_id, screening_id, booking_reference, amount_paid, status, phone_number,
+    payment_payer_name, payment_payer_email, payment_transaction_id, payment_notes
   ) VALUES (
-    p_user_id, p_screening_id, p_booking_reference, p_amount_paid, 'pending', p_phone_number
+    p_user_id, p_screening_id, p_booking_reference, p_amount_paid, 'pending', p_phone_number,
+    p_payment_payer_name, p_payment_payer_email, p_payment_transaction_id, p_payment_notes
   )
   RETURNING * INTO v_booking;
 
@@ -155,7 +175,8 @@ BEGIN
     SELECT
       v_booking.id, v_booking.user_id, v_booking.screening_id, v_booking.booking_reference,
       v_booking.amount_paid, v_booking.razorpay_order_id, v_booking.razorpay_payment_id,
-      v_booking.razorpay_signature, v_booking.status, v_booking.phone_number,
+      v_booking.razorpay_signature, v_booking.payment_payer_name, v_booking.payment_payer_email,
+      v_booking.payment_transaction_id, v_booking.payment_notes, v_booking.status, v_booking.phone_number,
       v_booking.attended, v_booking.created_at;
 END;
 $$;
@@ -239,6 +260,10 @@ CREATE TABLE IF NOT EXISTS film_submissions (
                          CHECK (status IN ('pending','under_review','approved','rejected')),
   razorpay_order_id    TEXT,
   razorpay_payment_id  TEXT,
+  payment_payer_name       TEXT,
+  payment_payer_email      TEXT,
+  payment_transaction_id   TEXT,
+  payment_notes            TEXT,
   fee_paid             NUMERIC(10,2) NOT NULL DEFAULT 0,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -247,6 +272,12 @@ CREATE TABLE IF NOT EXISTS film_submissions (
 CREATE INDEX IF NOT EXISTS idx_submissions_status ON film_submissions(status);
 CREATE INDEX IF NOT EXISTS idx_submissions_email  ON film_submissions(submitter_email);
 CREATE INDEX IF NOT EXISTS idx_submissions_rzp    ON film_submissions(razorpay_order_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_transaction ON film_submissions(payment_transaction_id);
+
+ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_payer_name TEXT;
+ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_payer_email TEXT;
+ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_transaction_id TEXT;
+ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_notes TEXT;
 
 ALTER TABLE film_submissions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE submission_settings ENABLE ROW LEVEL SECURITY;
