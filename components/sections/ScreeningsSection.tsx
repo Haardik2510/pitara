@@ -90,7 +90,7 @@ export default function ScreeningsSection() {
           <div style={{ textAlign:'center', padding:'60px 0', fontFamily:"'IBM Plex Mono',monospace", fontSize:12, color:'var(--orange)', letterSpacing:4 }}>Loading screenings…</div>
         ) : screenings.length === 0 ? (
           <div style={{ textAlign:'center', padding:'60px 0' }}>
-            <p style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, color:'rgba(255,225,0,.35)', letterSpacing:4 }}>No screenings yet. Check back soon.</p>
+            <p style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:28, color:'rgba(255,225,0,.35)', letterSpacing:4 }}>No shows yet. Check back soon.</p>
           </div>
         ) : (
           <div style={{ display:'flex', flexDirection:'column', gap:2 }}>

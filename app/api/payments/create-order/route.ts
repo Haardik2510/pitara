@@ -7,11 +7,12 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Please sign in first' }, { status: 401 })
 
-  const { screeningId, phone, payerName, payerEmail, transactionId, paymentNote, quantity, totalAmount } = await req.json()
+  const { screeningId, phone, payerName, payerEmail, transactionId, paymentNote, paymentScreenshotUrl, quantity, totalAmount } = await req.json()
   if (!screeningId) return NextResponse.json({ error: 'Missing screening ID' }, { status: 400 })
   if (!phone) return NextResponse.json({ error: 'Phone number is required' }, { status: 400 })
   if (!payerName) return NextResponse.json({ error: 'Payment name is required' }, { status: 400 })
   if (!transactionId) return NextResponse.json({ error: 'Transaction ID / UTR is required' }, { status: 400 })
+  if (!paymentScreenshotUrl) return NextResponse.json({ error: 'Payment screenshot is required' }, { status: 400 })
 
   const db = createAdminClient()
 
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
     p_payment_payer_email: payerEmail || user.email || null,
     p_payment_transaction_id: transactionId,
     p_payment_notes: finalNotes,
+    p_payment_screenshot_url: paymentScreenshotUrl,
   })
 
   const booking = Array.isArray(reservedRows) ? reservedRows[0] : null

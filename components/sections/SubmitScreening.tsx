@@ -89,6 +89,7 @@ type FormData = {
   additional_notes: string; poster_url: string; gallery_urls: string[]; screening_link: string
   trailer_link: string; submitter_name: string; submitter_email: string; submitter_phone: string
   payment_transaction_id: string; payment_payer_name: string; payment_notes: string;
+  payment_screenshot_url: string;
 }
 
 const INIT: FormData = {
@@ -97,6 +98,7 @@ const INIT: FormData = {
   poster_url: '', gallery_urls: [], screening_link: '', trailer_link: '',
   submitter_name: '', submitter_email: '', submitter_phone: '',
   payment_transaction_id: '', payment_payer_name: '', payment_notes: '',
+  payment_screenshot_url: '',
 }
 
 export default function SubmitScreeningSection() {
@@ -147,6 +149,7 @@ export default function SubmitScreeningSection() {
     if (s === 3 && feeRequired) {
       if (!form.payment_transaction_id.trim()) e.payment_transaction_id = 'Transaction ID / UTR is required'
       if (!form.payment_payer_name.trim())     e.payment_payer_name     = 'Payer name is required'
+      if (!form.payment_screenshot_url.trim()) e.payment_screenshot_url  = 'Payment screenshot is mandatory'
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -407,6 +410,14 @@ export default function SubmitScreeningSection() {
                       </Field>
                       <Field label="Payment Notes (Optional)">
                         <input style={INP} placeholder="Any message for verification" value={form.payment_notes} onChange={e => set('payment_notes', e.target.value)} />
+                      </Field>
+                      <Field label="Payment Screenshot" required>
+                        <ImageDropzone 
+                          label="Upload proof of payment" 
+                          preview={form.payment_screenshot_url} 
+                          onUpload={urls => set('payment_screenshot_url', urls[0])} 
+                        />
+                        {errors.payment_screenshot_url && <p style={ERR}>{errors.payment_screenshot_url}</p>}
                       </Field>
                     </div>
                   </div>

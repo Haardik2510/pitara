@@ -107,6 +107,7 @@ export async function POST(req: NextRequest) {
     payment_payer_email: body.payment_payer_email || body.submitter_email || null,
     payment_transaction_id: body.payment_transaction_id || null,
     payment_notes: body.payment_notes || null,
+    payment_screenshot_url: body.payment_screenshot_url || null,
     fee_paid,
   }).select().single()
 

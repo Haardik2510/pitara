@@ -11,7 +11,7 @@ export interface Booking {
   booking_reference: string; amount_paid: number;
   razorpay_order_id?: string; razorpay_payment_id?: string; razorpay_signature?: string;
   payment_payer_name?: string; payment_payer_email?: string;
-  payment_transaction_id?: string; payment_notes?: string;
+  payment_transaction_id?: string; payment_notes?: string; payment_screenshot_url?: string;
   status: 'pending'|'confirmed'|'cancelled'|'refunded';
   phone_number?: string; attended: boolean; created_at: string;
   screening?: Screening; user?: UserProfile;
@@ -66,6 +66,7 @@ export interface FilmSubmission {
   payment_payer_email?: string
   payment_transaction_id?: string
   payment_notes?: string
+  payment_screenshot_url?: string
   fee_paid: number
   created_at: string
   updated_at: string

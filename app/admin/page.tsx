@@ -308,6 +308,7 @@ export default function AdminPage() {
   )
 
   const confirmed  = bookings.filter(b => b.status === 'confirmed')
+  const pending    = bookings.filter(b => b.status === 'pending')
   const revenue    = confirmed.reduce((s,b) => s + Number(b.amount_paid), 0)
   const subRevenue = submissions.reduce((t,s) => t + Number(s.fee_paid), 0)
 
@@ -348,10 +349,10 @@ export default function AdminPage() {
           {[
             ['Screenings',   screenings.length],
             ['Confirmed',    confirmed.length],
+            ['Pending',      pending.length],
             ['Revenue',      `₹${revenue.toLocaleString('en-IN')}`],
             ['Submissions',  submissions.length],
             ['Sub Revenue',  `₹${subRevenue.toLocaleString('en-IN')}`],
-            ['Live',         screenings.filter(s => s.is_published).length],
           ].map(([l,v]) => (
             <div key={l as string} className="vintage-card" style={{padding:14,textAlign:'center'}}>
               <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:28,color:'var(--yellow)',textShadow:'1px 1px 0 var(--orange)'}}>{v}</div>
@@ -427,7 +428,7 @@ export default function AdminPage() {
                 <table style={{width:'100%',borderCollapse:'collapse',fontFamily:"'IBM Plex Mono',monospace",fontSize:11}}>
                   <thead>
                     <tr style={{borderBottom:'1px solid rgba(255,225,0,.2)'}}>
-                      {['REF','NAME','CONTACT','TRANSACTION ID','SCREENING','AMOUNT','STATUS','NOTES','ATTENDED','DATE'].map(h => (
+                      {['REF','NAME','CONTACT','TRANSACTION ID','SCREENING','AMOUNT','STATUS','SCREENSHOT','ATTENDED','DATE'].map(h => (
                         <th key={h} style={{padding:'8px 10px',textAlign:'left',color:'var(--orange)',letterSpacing:2,whiteSpace:'nowrap'}}>{h}</th>
                       ))}
                     </tr>
@@ -456,7 +457,12 @@ export default function AdminPage() {
                             <option value="failed">FAILED</option>
                           </select>
                         </td>
-                        <td style={{padding:'7px 10px',color:'rgba(245,238,216,.6)',fontSize:10}}>{b.payment_notes || '—'}</td>
+                        <td style={{padding:'7px 10px'}}>
+                          {b.payment_screenshot_url ? (
+                            <a href={b.payment_screenshot_url} target="_blank" rel="noreferrer" style={{color:'var(--yellow)',textDecoration:'underline'}}>VIEW</a>
+                          ) : '—'}
+                          {b.payment_notes && <div style={{fontSize:9,opacity:0.5,marginTop:4}}>{b.payment_notes}</div>}
+                        </td>
                         <td style={{padding:'7px 10px'}}>
                           <button onClick={() => markAttend(b.id, !b.attended)} style={{
                             background:b.attended?'rgba(0,200,100,.2)':'transparent',
@@ -552,14 +558,20 @@ export default function AdminPage() {
                         </div>
                         <div style={{display:'grid',gap:6,marginTop:12,padding:'10px 14px',background:'rgba(255,225,0,.04)',border:'1px solid rgba(255,225,0,.1)'}}>
                           <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:9,color:'var(--orange)',letterSpacing:2,marginBottom:4}}>PAYMENT VERIFICATION</p>
-                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
                             <div>
                               <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>PAYER NAME</p>
-                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--cream)'}}>{s.payment_payer_name || '—'}</p>
+                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--cream)',wordBreak:'break-all'}}>{s.payment_payer_name || '—'}</p>
                             </div>
                             <div>
-                              <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>TRANSACTION ID / UTR</p>
-                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--yellow)',letterSpacing:1}}>{s.payment_transaction_id || s.razorpay_payment_id || '—'}</p>
+                              <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>TRANSACTION ID</p>
+                              <p style={{fontFamily:"'Inter',sans-serif",fontSize:11,color:'var(--yellow)',letterSpacing:1,wordBreak:'break-all'}}>{s.payment_transaction_id || s.razorpay_payment_id || '—'}</p>
+                            </div>
+                            <div>
+                              <p style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:8,color:'rgba(245,238,216,.4)',letterSpacing:1}}>PROOF</p>
+                              {s.payment_screenshot_url ? (
+                                <a href={s.payment_screenshot_url} target="_blank" rel="noreferrer" style={{fontFamily:"'IBM Plex Mono',monospace",fontSize:11,color:'var(--yellow)',textDecoration:'underline'}}>VIEW SS</a>
+                              ) : <span style={{fontSize:11,color:'rgba(255,225,0,.3)'}}>—</span>}
                             </div>
                           </div>
                           {s.payment_notes && (

@@ -26,6 +26,7 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
   const [payNote, setPayNote]       = useState('')
   const [qty, setQty]               = useState(1)
   const [submitting, setSubmitting] = useState(false)
+  const [screenshot, setScreenshot] = useState<File | null>(null)
   const [error, setError]           = useState('')
   const [bookingRef, setBookingRef] = useState('')
 
@@ -67,11 +68,23 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
     if (!transId.trim()) { setError('Transaction ID / UTR number is required'); return }
     if (!payerName.trim()) { setError('Full name is required'); return }
     if (!phone.trim()) { setError('Phone number is required'); return }
+    if (!screenshot) { setError('Payment screenshot is mandatory'); return }
 
     setSubmitting(true)
     setError('')
 
     try {
+      let screenshotUrl = ''
+      if (screenshot) {
+        const fd = new FormData()
+        fd.append('file', screenshot)
+        fd.append('context', 'bookings')
+        const upRes = await fetch('/api/payments/upload-screenshot', { method: 'POST', body: fd })
+        const upData = await upRes.json()
+        if (!upRes.ok) throw new Error(upData.error || 'Screenshot upload failed')
+        screenshotUrl = upData.url
+      }
+
       const res = await fetch('/api/payments/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -82,6 +95,7 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
           payerEmail: payerEmail || undefined,
           transactionId: transId,
           paymentNote: payNote || `${qty} ticket(s) - ₹${totalAmount}`,
+          paymentScreenshotUrl: screenshotUrl,
           quantity: qty,
           totalAmount,
         }),
@@ -101,7 +115,7 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
   const reset = () => {
     setStage('closed')
     setPhone(''); setPayerName(''); setPayerEmail(''); setTransId(''); setPayNote('')
-    setQty(1); setError(''); setBookingRef('')
+    setQty(1); setError(''); setBookingRef(''); setScreenshot(null)
   }
 
   /* ── Render ───────────────────────────────────────────────── */
@@ -305,6 +319,27 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
                   onChange={e => setPayNote(e.target.value)} 
                   autoComplete="off"
                 />
+              </div>
+
+              <div style={{ gridColumn: '1/-1', marginTop: 8 }}>
+                <label style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'var(--orange)', letterSpacing: 3, marginBottom: 8, display: 'block' }}>SCREENSHOT OF PAYMENT *</label>
+                <div 
+                  style={{ 
+                    border: '1px dashed rgba(255,225,0,.3)', background: 'rgba(24,25,109,.5)', 
+                    padding: '16px', textAlign: 'center', cursor: 'pointer', position: 'relative'
+                  }}
+                  onClick={() => document.getElementById(`pay-ss-${s.id}`)?.click()}
+                >
+                  <input 
+                    type="file" id={`pay-ss-${s.id}`} accept="image/*" style={{ display: 'none' }}
+                    onChange={e => setScreenshot(e.target.files?.[0] || null)}
+                  />
+                  {screenshot ? (
+                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: 'var(--yellow)' }}>✓ {screenshot.name}</p>
+                  ) : (
+                    <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: 'rgba(245,238,216,.6)' }}>Click to upload screenshot</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

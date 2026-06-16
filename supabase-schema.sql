@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS bookings (
                          CHECK (status IN ('pending','confirmed','cancelled','refunded')),
   phone_number         TEXT,
   attended             BOOLEAN     NOT NULL DEFAULT false,
+  payment_screenshot_url TEXT,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -71,6 +72,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_payer_name TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_payer_email TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_transaction_id TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_notes TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_screenshot_url TEXT;
 
 -- 5. ROW LEVEL SECURITY
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
@@ -116,7 +118,8 @@ CREATE OR REPLACE FUNCTION reserve_booking(
   p_payment_payer_name TEXT DEFAULT NULL,
   p_payment_payer_email TEXT DEFAULT NULL,
   p_payment_transaction_id TEXT DEFAULT NULL,
-  p_payment_notes TEXT DEFAULT NULL
+  p_payment_notes TEXT DEFAULT NULL,
+  p_payment_screenshot_url TEXT DEFAULT NULL
 )
 RETURNS TABLE (
   id UUID,
@@ -134,6 +137,7 @@ RETURNS TABLE (
   status TEXT,
   phone_number TEXT,
   attended BOOLEAN,
+  payment_screenshot_url TEXT,
   created_at TIMESTAMPTZ
 )
 LANGUAGE plpgsql
@@ -160,10 +164,12 @@ BEGIN
 
   INSERT INTO bookings (
     user_id, screening_id, booking_reference, amount_paid, status, phone_number,
-    payment_payer_name, payment_payer_email, payment_transaction_id, payment_notes
+    payment_payer_name, payment_payer_email, payment_transaction_id, payment_notes,
+    payment_screenshot_url
   ) VALUES (
     p_user_id, p_screening_id, p_booking_reference, p_amount_paid, 'pending', p_phone_number,
-    p_payment_payer_name, p_payment_payer_email, p_payment_transaction_id, p_payment_notes
+    p_payment_payer_name, p_payment_payer_email, p_payment_transaction_id, p_payment_notes,
+    p_payment_screenshot_url
   )
   RETURNING * INTO v_booking;
 
@@ -177,7 +183,7 @@ BEGIN
       v_booking.amount_paid, v_booking.razorpay_order_id, v_booking.razorpay_payment_id,
       v_booking.razorpay_signature, v_booking.payment_payer_name, v_booking.payment_payer_email,
       v_booking.payment_transaction_id, v_booking.payment_notes, v_booking.status, v_booking.phone_number,
-      v_booking.attended, v_booking.created_at;
+      v_booking.attended, v_booking.payment_screenshot_url, v_booking.created_at;
 END;
 $$;
 
@@ -264,6 +270,7 @@ CREATE TABLE IF NOT EXISTS film_submissions (
   payment_payer_email      TEXT,
   payment_transaction_id   TEXT,
   payment_notes            TEXT,
+  payment_screenshot_url   TEXT,
   fee_paid             NUMERIC(10,2) NOT NULL DEFAULT 0,
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -278,6 +285,7 @@ ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_payer_name TEXT;
 ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_payer_email TEXT;
 ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_transaction_id TEXT;
 ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_notes TEXT;
+ALTER TABLE film_submissions ADD COLUMN IF NOT EXISTS payment_screenshot_url TEXT;
 
 ALTER TABLE film_submissions  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE submission_settings ENABLE ROW LEVEL SECURITY;
