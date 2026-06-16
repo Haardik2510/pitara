@@ -111,6 +111,26 @@ export default function SubmitScreeningSection() {
   const [submitErr, setSubmitErr] = useState('')
   const sectionRef = useRef<HTMLElement>(null)
 
+  // Load draft
+  useEffect(() => {
+    const saved = localStorage.getItem('pitara_submission_draft')
+    if (saved) {
+      try {
+        const d = JSON.parse(saved)
+        setForm(d.form); setStep(d.step)
+      } catch {}
+    }
+  }, [])
+
+  // Save draft
+  useEffect(() => {
+    if (!submitted) {
+      localStorage.setItem('pitara_submission_draft', JSON.stringify({ form, step }))
+    } else {
+      localStorage.removeItem('pitara_submission_draft')
+    }
+  }, [form, step, submitted])
+
   useEffect(() => {
     fetch('/api/admin/submission-settings')
       .then(r => r.json())

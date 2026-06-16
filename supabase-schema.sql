@@ -179,11 +179,13 @@ BEGIN
 
   RETURN QUERY
     SELECT
-      v_booking.id, v_booking.user_id, v_booking.screening_id, v_booking.booking_reference,
-      v_booking.amount_paid, v_booking.razorpay_order_id, v_booking.razorpay_payment_id,
-      v_booking.razorpay_signature, v_booking.payment_payer_name, v_booking.payment_payer_email,
-      v_booking.payment_transaction_id, v_booking.payment_notes, v_booking.status, v_booking.phone_number,
-      v_booking.attended, v_booking.payment_screenshot_url, v_booking.created_at;
+      b.id, b.user_id, b.screening_id, b.booking_reference,
+      b.amount_paid, b.razorpay_order_id, b.razorpay_payment_id,
+      b.razorpay_signature, b.payment_payer_name, b.payment_payer_email,
+      b.payment_transaction_id, b.payment_notes, b.status, b.phone_number,
+      b.attended, b.payment_screenshot_url, b.created_at
+    FROM bookings b
+    WHERE b.id = v_booking.id;
 END;
 $$;
 

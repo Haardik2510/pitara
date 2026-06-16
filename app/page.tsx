@@ -40,7 +40,7 @@ export default function HomePage() {
 
   useEffect(() => {
     try {
-      if (sessionStorage.getItem(SESSION_KEY) === '1') {
+      if (localStorage.getItem(SESSION_KEY) === '1') {
         setPhase('site')
         window.dispatchEvent(new Event('pitara:showNav'))
       }
@@ -48,7 +48,7 @@ export default function HomePage() {
   }, [])
 
   const markIntroDone = useCallback(() => {
-    try { sessionStorage.setItem(SESSION_KEY, '1') } catch {}
+    try { localStorage.setItem(SESSION_KEY, '1') } catch {}
   }, [])
 
   // ── Show nav immediately if session already seen ─────────

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { toPng } from 'html-to-image'
 import { useAuth } from '@/app/hooks/useAuth'
 import type { Screening } from '@/app/types'
@@ -29,6 +29,30 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
   const [screenshot, setScreenshot] = useState<File | null>(null)
   const [error, setError]           = useState('')
   const [bookingRef, setBookingRef] = useState('')
+
+  const DRAFT_KEY = `pitara_booking_draft_${s.id}`
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY)
+    if (saved) {
+      try {
+        const d = JSON.parse(saved)
+        if (d.phone) setPhone(d.phone)
+        if (d.payerName) setPayerName(d.payerName)
+        if (d.payerEmail) setPayerEmail(d.payerEmail)
+        if (d.payNote) setPayNote(d.payNote)
+        if (d.qty) setQty(d.qty)
+        if (d.stage) setStage(d.stage)
+      } catch {}
+    }
+  }, [DRAFT_KEY])
+
+  useEffect(() => {
+    if (stage !== 'closed' && stage !== 'success') {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ phone, payerName, payerEmail, payNote, qty, stage }))
+    } else if (stage === 'success') {
+      localStorage.removeItem(DRAFT_KEY)
+    }
+  }, [DRAFT_KEY, stage, phone, payerName, payerEmail, payNote, qty])
 
   const totalAmount = Number(s.price) * qty
   const soldOut     = s.booked_count >= s.capacity
