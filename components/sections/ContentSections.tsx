@@ -61,18 +61,6 @@ export function AboutSection() {
           ))}
         </div>
 
-        <div className="about-lines-old" style={{ display: 'none' }}>
-          {[
-            { text: 'PITARA is not a platform.',                                                                                                                                    font: "'Oswald',sans-serif", w: 700, sz: 'clamp(18px,2.8vw,30px)', col: 'var(--yellow)', pl: 0,  bl: 'none',                      mb: 4  },
-            { text: 'It is not an algorithm.',                                                                                                                                      font: "'Oswald',sans-serif", w: 700, sz: 'clamp(18px,2.8vw,30px)', col: 'var(--yellow)', pl: 0,  bl: 'none',                      mb: 14 },
-            { text: 'It is a room full of people who chose to show up — for a film that deserved to be seen, and an audience that deserved to see it.',                             font: "'Inter',sans-serif",   w: 400, sz: 'clamp(14px,1.8vw,19px)', col: 'var(--cream)',  pl: 20, bl: '3px solid var(--orange)', mb: 10 },
-            { text: 'We find the films. We find the space. You bring yourself.',                                                                                                    font: "'Inter',sans-serif",   w: 500, sz: 'clamp(14px,1.8vw,19px)', col: 'var(--cream)',  pl: 20, bl: '3px solid var(--orange)', mb: 0  },
-          ].map((l, i) => (
-            <p key={i} className="about-line" style={{ fontFamily: l.font, fontWeight: l.w, fontSize: l.sz, color: l.col, lineHeight: 1.65, marginBottom: l.mb, paddingLeft: l.pl, borderLeft: l.bl, opacity: .92 }}>
-              {l.text}
-            </p>
-          ))}
-        </div>
 
         <div className="about-pillars" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 2 }}>
           {ABOUT_PILLARS.map(({ icon, title, body }) => (
@@ -85,19 +73,6 @@ export function AboutSection() {
           ))}
         </div>
 
-        <div className="about-pillars-old" style={{ display: 'none' }}>
-          {[
-            { icon: '🎬', title: 'Curated Films', body: 'Every film we screen is chosen because it deserves an audience, not because it has one.' },
-            { icon: '🪑', title: 'Real Venues',   body: 'Not a sofa. Not a stream. A room with strangers who all chose to be there.' },
-            { icon: '🎟', title: 'No Algorithm',  body: "We don't personalise. We programme. Come discover something you didn't know you needed." },
-          ].map(({ icon, title, body }) => (
-            <div key={title} className="about-pillar vintage-card" style={{ padding: '24px 20px' }}>
-              <div style={{ fontSize: 28, marginBottom: 12 }}>{icon}</div>
-              <h3 style={{ fontFamily: "'Oswald',sans-serif", fontWeight: 700, fontSize: 'clamp(16px,2vw,20px)', color: 'var(--yellow)', letterSpacing: 2, marginBottom: 10 }}>{title}</h3>
-              <p style={{ fontFamily: "'Inter',sans-serif", fontSize: 13, color: 'var(--cream)', opacity: .78, lineHeight: 1.65 }}>{body}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   )
