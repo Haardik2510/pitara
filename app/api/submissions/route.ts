@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   if (exportCsv) {
     const headers = [
       'ID', 'Title', 'Director', 'Runtime', 'Genres', 'Submitter', 'Email', 'Phone',
-      'Screening Link', 'Trailer Link', 'Payer Name', 'Payer Email', 'Transaction ID', 'Payment Notes', 'Status', 'Fee Paid', 'Submitted At',
+      'Screening Link', 'Trailer Link', 'Payer Name', 'Payer Email', 'Transaction ID', 'Payment Notes', 'Payment Proof URL', 'Status', 'Fee Paid', 'Submitted At',
     ]
     const rows = (data || []).map((s: any) => [
       s.id,
@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
       s.payment_payer_email || '',
       s.payment_transaction_id || '',
       s.payment_notes || '',
+      s.payment_screenshot_url || '',
       s.status,
       `INR ${s.fee_paid}`,
       new Date(s.created_at).toLocaleString('en-IN'),

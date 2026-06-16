@@ -20,11 +20,11 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (exportCsv) {
-    const h = ['Ref','Name','Email','Phone','Screening','Date','Venue','Amount','Payer Name','Payer Email','Transaction ID','Payment Notes','Status','Attended','Booked At']
+    const h = ['Ref','Name','Email','Phone','Screening','Date','Venue','Amount','Payer Name','Payer Email','Transaction ID','Payment Notes','Payment Proof URL','Status','Attended','Booked At']
     const rows = (data||[]).map((b:any) => [
       b.booking_reference, b.user?.name||'', b.user?.email||'', b.phone_number||'',
       b.screening?.title||'', b.screening?.date||'', b.screening?.venue_name||'',
-      b.amount_paid, b.payment_payer_name||'', b.payment_payer_email||'', b.payment_transaction_id||'', b.payment_notes||'',
+      b.amount_paid, b.payment_payer_name||'', b.payment_payer_email||'', b.payment_transaction_id||'', b.payment_notes||'', b.payment_screenshot_url||'',
       b.status, b.attended?'Yes':'No', new Date(b.created_at).toLocaleString('en-IN'),
     ])
     const csv = [h,...rows].map(r=>r.map((v:any)=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n')
