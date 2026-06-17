@@ -166,9 +166,6 @@ export default function ScreeningCard({ screening: s, index: _i }: { screening: 
         </div>
         <div style={{ textAlign: 'right', flexShrink: 0 }}>
           <p style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 28, color: 'var(--yellow)', textShadow: '2px 2px 0 var(--orange)', letterSpacing: 2 }}>₹{s.price}</p>
-          <p style={{ fontFamily: "'IBM Plex Mono',monospace", fontSize: 9, color: 'rgba(245,238,216,.4)', letterSpacing: 2 }}>
-            {s.booked_count}/{s.capacity} BOOKED
-          </p>
         </div>
       </div>
 
