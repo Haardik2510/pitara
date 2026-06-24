@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, requireAdmin } from '@/app/lib/supabase-server'
+import { sendSubmissionEmail } from '@/lib/mail'
 
 export async function GET(req: NextRequest) {
   const admin = await requireAdmin()
@@ -113,6 +114,20 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // ── Send automated confirmation email ──
+  try {
+    if (body.submitter_email) {
+      await sendSubmissionEmail(
+        body.submitter_email,
+        body.submitter_name,
+        body.title
+      );
+    }
+  } catch (err) {
+    console.error('Failed to send submission email:', err);
+    // Don't fail the request if email fails
+  }
 
   console.log(`Submission received: ${data.title} from ${body.submitter_email} - ID: ${data.id}`)
   return NextResponse.json({ submission: data }, { status: 201 })

@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { createSupabaseServer, createAdminClient } from '@/app/lib/supabase-server'
+import { sendBookingReceiptEmail } from '@/lib/mail'
 
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServer()
@@ -52,6 +53,22 @@ export async function POST(req: NextRequest) {
   const booking = Array.isArray(reservedRows) ? reservedRows[0] : null
   if (reserveError || !booking) {
     return NextResponse.json({ error: reserveError?.message || 'Could not reserve booking' }, { status: 400 })
+  }
+
+  // ── Send automated email receipt ──
+  try {
+    const userEmail = payerEmail || user.email;
+    if (userEmail) {
+      await sendBookingReceiptEmail(
+        userEmail,
+        payerName,
+        booking.booking_reference || bookingRef,
+        screening.title
+      );
+    }
+  } catch (err) {
+    console.error('Failed to send booking email:', err);
+    // Don't fail the request if email fails
   }
 
   return NextResponse.json({
