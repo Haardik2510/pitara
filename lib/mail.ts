@@ -1,16 +1,19 @@
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = 'Pitara <bookings@pitara.com>'; // Update this once you verify your domain
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
+
+const FROM_EMAIL = 'khula.pitara0@gmail.com'; // Use the email you verify as a Single Sender in SendGrid
 
 /**
  * Sends a confirmation email to the user when they submit a film.
  */
 export async function sendSubmissionEmail(email: string, name: string, filmTitle: string) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const msg = {
       to: email,
+      from: FROM_EMAIL,
       subject: `Film Submission Received: ${filmTitle}`,
       html: `
         <div style="background: #0a0b35; color: #f5eed8; font-family: 'Inter', sans-serif; padding: 40px; border: 1px solid #c0b080;">
@@ -23,15 +26,12 @@ export async function sendSubmissionEmail(email: string, name: string, filmTitle
           </div>
         </div>
       `,
-    });
+    };
 
-    if (error) {
-      console.error('Mail error:', error);
-      return { success: false, error };
-    }
-    return { success: true, data };
+    const result = await sgMail.send(msg);
+    return { success: true, data: result };
   } catch (err) {
-    console.error('Mail exception:', err);
+    console.error('SendGrid submission mail error:', err);
     return { success: false, error: err };
   }
 }
@@ -41,9 +41,9 @@ export async function sendSubmissionEmail(email: string, name: string, filmTitle
  */
 export async function sendBookingReceiptEmail(email: string, name: string, bookingRef: string, screeningTitle: string) {
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const msg = {
       to: email,
+      from: FROM_EMAIL,
       subject: `Booking Received: ${screeningTitle}`,
       html: `
         <div style="background: #0a0b35; color: #f5eed8; font-family: 'Inter', sans-serif; padding: 40px; border: 1px solid #c0b080;">
@@ -57,15 +57,12 @@ export async function sendBookingReceiptEmail(email: string, name: string, booki
           </div>
         </div>
       `,
-    });
+    };
 
-    if (error) {
-       console.error('Mail error:', error);
-       return { success: false, error };
-    }
-    return { success: true, data };
+    const result = await sgMail.send(msg);
+    return { success: true, data: result };
   } catch (err) {
-    console.error('Mail exception:', err);
+    console.error('SendGrid booking mail error:', err);
     return { success: false, error: err };
   }
 }
